@@ -85,25 +85,33 @@ pipeline:
                   identifier: create_and_register_entity
                   spec:
                     shell: Sh
-                    command: "curl --location 'https://qa.harness.io/v1/entities?convert=false&dry_run=false'\
-                      \ \\\n--header 'Content-Type: application/json' \\\n--header\
-                      \ 'Harness-Account: zEaak-FLS425IEO7OLzMUg' \\\n--header 'x-api-key:\
-                      \ pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY'\
-                      \ \\\n--data '{\n    \"yaml\": \"apiVersion: harness.io/v1\\\
-                      nkind: component\\ntype: Service\\nidentifier: s1dtest_defaulter\\\
-                      nname: my-sample-service-sdtest\\nowner: shibam-owner\\nspec:\\\
-                      n  lifecycle: experimental\\n  ownedBy:\\n    - group/sample-group\\\
-                      nmetadata:\\n  description: My Sample service.\\n  annotations:\\\
-                      n    backstage.io/source-location: url:https://github.com/Sdhar-ORG-Harness/pipeline6/blob/main/gen-code.yaml\\\
-                      n    backstage.io/techdocs-ref: dir:.\\n  links:\\n    - title:\
-                      \ Website\\n      url: http://my-sample-website.com\\n  tags:\\\
-                      n    - my-sample\\n\",\n    \"git_details\": {\n        \"branch_name\"\
-                      : \"main\",\n        \"file_path\": \"harness_entity/entity111.yaml\"\
-                      ,\n        \"commit_message\": \"Added Harness Git Experience\"\
-                      ,\n        \n        \"connector_ref\": \"account.ShibamDhar\"\
-                      ,\n        \"store_type\": \"REMOTE\",\n        \"repo_name\"\
-                      : \"first-repo\",\n        \"is_harness_code_repo\": false\n\
-                      \    }\n}'"
+                    command: |-
+                      import requests
+                      import json
+
+                      url = "https://qa.harness.io/v1/entities?convert=false&dry_run=false"
+
+                      payload = json.dumps({
+                        "yaml": "apiVersion: harness.io/v1\nkind: component\ntype: Service\nidentifier: <+pipeline.variables.unique_identifier>\nname: <+pipeline.variables.service_name>\nowner: <+pipeline.variables.owner>\nspec:\n  lifecycle: experimental\n  ownedBy:\n    - group/sample-group\nmetadata:\n  description: <+pipeline.variables.description>\n  annotations:\n    backstage.io/source-location: url:https://github.com/<+pipeline.variables.organization>/<+pipeline.variables.repo_name>/blob/main/gen-code.yaml\n    backstage.io/techdocs-ref: dir:.\n  links:\n    - title: Website\n      url: http://my-sample-website.com\n  tags:\n    - my-sample\n",
+                        "git_details": {
+                          "branch_name": "main",
+                          "file_path": "harness_entity/<+pipeline.variables.service_name>.yaml",
+                          "commit_message": "Added Harness Git Experience",
+                          "connector_ref": "account.ShibamDhar",
+                          "store_type": "REMOTE",
+                          "repo_name": "<+pipeline.variables.repo_name>",
+                          "is_harness_code_repo": False
+                        }
+                      })
+                      headers = {
+                        'Content-Type': 'application/json',
+                        'Harness-Account': 'zEaak-FLS425IEO7OLzMUg',
+                        'x-api-key': 'pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY'
+                      }
+
+                      response = requests.request("POST", url, headers=headers, data=payload)
+
+                      print(response.text)
         tags: {}
   variables:
     - name: service_name
@@ -137,6 +145,11 @@ pipeline:
       required: true
       value: <+input>
     - name: repo_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: unique_identifier
       type: String
       description: ""
       required: true
