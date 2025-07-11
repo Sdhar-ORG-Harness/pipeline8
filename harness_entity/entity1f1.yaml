@@ -156,9 +156,9 @@ pipeline:
       required: true
       value: zEaak-FLS425IEO7OLzMUg
     - name: api_key
-      type: String
+      type: Secret
       description: ""
       required: true
-      value: pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY
+      value: sd-api-key-harness
   identifier: JavaOnboardSD_Clone_Clone
   name: java-service-onboarding
