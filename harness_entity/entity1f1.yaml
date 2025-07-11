@@ -80,7 +80,7 @@ pipeline:
                   name: create and register entity
                   identifier: create_and_register_entity
                   spec:
-                    shell: Sh
+                    shell: Python
                     command: |-
                       import requests
                       import json
