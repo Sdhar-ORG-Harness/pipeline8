@@ -161,4 +161,4 @@ pipeline:
       required: true
       value: pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY
   identifier: JavaOnboardSD_Clone_Clone
-  name: Java-Onboard-createEntity - Clone
+  name: java-service-onboarding
