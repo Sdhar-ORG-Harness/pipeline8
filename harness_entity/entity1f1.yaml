@@ -1,0 +1,145 @@
+pipeline:
+  tags: {}
+  projectIdentifier: sd2
+  orgIdentifier: default
+  stages:
+    - stage:
+        name: java-onb-dev
+        identifier: javaonbdev
+        description: ""
+        type: IDP
+        spec:
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: GitClone
+                  name: CloneCookieTemp
+                  identifier: CloneCookieTemp
+                  spec:
+                    connectorRef: account.ShibamDhar
+                    repoName: <+pipeline.variables.cookie_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: main
+                  description: Clone the Java cookiecutter template
+                  when:
+                    stageStatus: Success
+                    condition: "false"
+              - step:
+                  type: CookieCutter
+                  name: CookieCuttercodeStart
+                  identifier: CookieCuttercodeStart
+                  spec:
+                    templateType: private
+                    pathForTemplate: <+pipeline.variables.cookie_repo>
+                    cookieCutterVariables:
+                      service_name: <+pipeline.variables.service_name>
+                      java_package_name: <+pipeline.variables.java_package_name>
+                      description: <+pipeline.variables.description>
+                      owner: <+pipeline.variables.owner>
+                    verbose: false
+                    overwriteIfExists: false
+                  when:
+                    stageStatus: Success
+                    condition: "false"
+              - step:
+                  type: CreateRepo
+                  name: CreateREPO
+                  identifier: CreateREPO
+                  spec:
+                    connectorType: Github
+                    connectorRef: account.ShibamDhar
+                    organization: <+pipeline.variables.organization>
+                    repository: <+pipeline.variables.repo_name>
+                    repoType: public
+                    defaultBranch: main
+                    personalAccount: false
+                  when:
+                    stageStatus: Success
+                    condition: "false"
+              - step:
+                  type: DirectPush
+                  name: DirectPushToGit
+                  identifier: DirectPushToGit
+                  spec:
+                    connectorType: Github
+                    forcePush: true
+                    connectorRef: account.ShibamDhar
+                    organization: <+pipeline.variables.organization>
+                    repository: <+pipeline.variables.repo_name>
+                    codeDirectory: <+pipeline.variables.service_name>
+                    branch: main
+                  when:
+                    stageStatus: Success
+                    condition: "false"
+              - step:
+                  type: Run
+                  name: create and register entity
+                  identifier: create_and_register_entity
+                  spec:
+                    shell: Sh
+                    command: "curl --location 'https://qa.harness.io/v1/entities?convert=false&dry_run=false'\
+                      \ \\\n--header 'Content-Type: application/json' \\\n--header\
+                      \ 'Harness-Account: zEaak-FLS425IEO7OLzMUg' \\\n--header 'x-api-key:\
+                      \ pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY'\
+                      \ \\\n--data '{\n    \"yaml\": \"apiVersion: harness.io/v1\\\
+                      nkind: component\\ntype: Service\\nidentifier: s1dtest_defaulter\\\
+                      nname: my-sample-service-sdtest\\nowner: shibam-owner\\nspec:\\\
+                      n  lifecycle: experimental\\n  ownedBy:\\n    - group/sample-group\\\
+                      nmetadata:\\n  description: My Sample service.\\n  annotations:\\\
+                      n    backstage.io/source-location: url:https://github.com/Sdhar-ORG-Harness/pipeline6/blob/main/gen-code.yaml\\\
+                      n    backstage.io/techdocs-ref: dir:.\\n  links:\\n    - title:\
+                      \ Website\\n      url: http://my-sample-website.com\\n  tags:\\\
+                      n    - my-sample\\n\",\n    \"git_details\": {\n        \"branch_name\"\
+                      : \"main\",\n        \"file_path\": \"harness_entity/entity111.yaml\"\
+                      ,\n        \"commit_message\": \"Added Harness Git Experience\"\
+                      ,\n        \n        \"connector_ref\": \"account.ShibamDhar\"\
+                      ,\n        \"store_type\": \"REMOTE\",\n        \"repo_name\"\
+                      : \"first-repo\",\n        \"is_harness_code_repo\": false\n\
+                      \    }\n}'"
+        tags: {}
+  variables:
+    - name: service_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: java_package_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: description
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: owner
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: cookie_repo
+      type: String
+      description: ""
+      required: false
+      value: java-cookiecutter-template
+    - name: organization
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: repo_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+  identifier: JavaOnboardSD_Clone_Clone
+  name: Java-Onboard-createEntity - Clone
