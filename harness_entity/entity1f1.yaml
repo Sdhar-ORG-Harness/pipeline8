@@ -101,8 +101,8 @@ pipeline:
                       })
                       headers = {
                         'Content-Type': 'application/json',
-                        'Harness-Account': 'zEaak-FLS425IEO7OLzMUg',
-                        'x-api-key': 'pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY'
+                        'Harness-Account': '<+pipeline.variables.harness_accID>',
+                        'x-api-key': '<+pipeline.variables.api_key>'
                       }
 
                       response = requests.request("POST", url, headers=headers, data=payload)
@@ -150,5 +150,15 @@ pipeline:
       description: ""
       required: true
       value: <+input>
+    - name: harness_accID
+      type: String
+      description: ""
+      required: true
+      value: zEaak-FLS425IEO7OLzMUg
+    - name: api_key
+      type: String
+      description: ""
+      required: true
+      value: pat.zEaak-FLS425IEO7OLzMUg.686cd454f3fdba532eeeec80.ZcBaZiKkUONjpsmxKGOY
   identifier: JavaOnboardSD_Clone_Clone
   name: Java-Onboard-createEntity - Clone
