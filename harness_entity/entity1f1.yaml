@@ -27,7 +27,7 @@ pipeline:
                     build:
                       type: branch
                       spec:
-                        branch: main
+                        branch: master
                   description: Clone the Java cookiecutter template
                   when:
                     stageStatus: Success
