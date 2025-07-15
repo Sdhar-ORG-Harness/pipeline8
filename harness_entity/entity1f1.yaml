@@ -19,11 +19,11 @@ pipeline:
             steps:
               - step:
                   type: GitClone
-                  name: CloneCookieTemp
+                  name: Cloning cookiecutter template
                   identifier: CloneCookieTemp
                   spec:
                     connectorRef: account.ShibamDhar
-                    repoName: <+pipeline.variables.cookie_repo>
+                    repoName: <+pipeline.variables.cookie_cutter_repo>
                     build:
                       type: branch
                       spec:
@@ -33,24 +33,22 @@ pipeline:
                     stageStatus: Success
               - step:
                   type: CookieCutter
-                  name: CookieCuttercodeStart
+                  name: Cookiecutter code generator
                   identifier: CookieCuttercodeStart
                   spec:
                     templateType: private
-                    pathForTemplate: <+pipeline.variables.cookie_repo>
+                    pathForTemplate: <+pipeline.variables.cookie_cutter_repo>
                     cookieCutterVariables:
-                      service_name: <+pipeline.variables.service_name>
-                      java_package_name: <+pipeline.variables.java_package_name>
-                      description: <+pipeline.variables.description>
-                      owner: <+pipeline.variables.owner>
+                      project_name: <+pipeline.variables.project_name>
+                      app_name: <+pipeline.variables.app_name>
                     verbose: false
                     overwriteIfExists: false
                   when:
                     stageStatus: Success
               - step:
                   type: CreateRepo
-                  name: CreateREPO
-                  identifier: CreateREPO
+                  name: Create a Git repo
+                  identifier: Create_a_Git_repo
                   spec:
                     connectorType: Github
                     connectorRef: account.ShibamDhar
@@ -63,7 +61,7 @@ pipeline:
                     stageStatus: Success
               - step:
                   type: DirectPush
-                  name: DirectPushToGit
+                  name: Push code to Git
                   identifier: DirectPushToGit
                   spec:
                     connectorType: Github
@@ -71,7 +69,7 @@ pipeline:
                     connectorRef: account.ShibamDhar
                     organization: <+pipeline.variables.organization>
                     repository: <+pipeline.variables.repo_name>
-                    codeDirectory: <+pipeline.variables.service_name>
+                    codeDirectory: <+pipeline.variables.project_name>
                     branch: main
                   when:
                     stageStatus: Success
@@ -85,57 +83,85 @@ pipeline:
                       import requests
                       import json
 
-                      url = "https://qa.harness.io/v1/entities?convert=false&dry_run=false"
+                      # Define Harness API endpoint with org and project identifiers
+                      url = (
+                          "https://qa.harness.io/v1/entities"
+                          "?convert=false"
+                          "&dry_run=false"
+                          "&orgIdentifier=<+pipeline.variables.org_identifier>"
+                          "&projectIdentifier=<+pipeline.variables.project_identifier>"
+                      )
 
+                      # Define the entity YAML
+                      component_yaml = '''
+                      apiVersion: harness.io/v1
+                      kind: component
+                      orgIdentifier: <+pipeline.variables.org_identifier>
+                      projectIdentifier: <+pipeline.variables.project_identifier>
+                      type: Service
+                      identifier: <+pipeline.variables.unique_identifier>
+                      name: <+pipeline.variables.app_name>
+                      owner: <+pipeline.variables.owner>
+                      spec:
+                        lifecycle: experimental
+                        ownedBy:
+                          - group/sample-group
+                      metadata:
+                        description: This entity ids for <+pipeline.variables.project_name>
+                        annotations:
+                          backstage.io/source-location: url:https://github.com/<+pipeline.variables.organization>/<+pipeline.variables.repo_name>
+                          backstage.io/techdocs-ref: dir:.
+                        links:
+                          - title: Website
+                            url: http://my-sample-website.com
+                        tags:
+                          - my-sample
+                      '''
+
+                      # Construct the JSON payload
                       payload = json.dumps({
-                        "yaml": "apiVersion: harness.io/v1\nkind: component\ntype: Service\nidentifier: <+pipeline.variables.unique_identifier>\nname: <+pipeline.variables.service_name>\nowner: <+pipeline.variables.owner>\nspec:\n  lifecycle: experimental\n  ownedBy:\n    - group/sample-group\nmetadata:\n  description: <+pipeline.variables.description>\n  annotations:\n    backstage.io/source-location: url:https://github.com/<+pipeline.variables.organization>/<+pipeline.variables.repo_name>/blob/main/gen-code.yaml\n    backstage.io/techdocs-ref: dir:.\n  links:\n    - title: Website\n      url: http://my-sample-website.com\n  tags:\n    - my-sample\n",
-                        "git_details": {
-                          "branch_name": "main",
-                          "file_path": "harness_entity/<+pipeline.variables.service_name>.yaml",
-                          "commit_message": "Added Harness Git Experience",
-                          "connector_ref": "account.ShibamDhar",
-                          "store_type": "REMOTE",
-                          "repo_name": "<+pipeline.variables.repo_name>",
-                          "is_harness_code_repo": False
-                        }
+                          "yaml": component_yaml,
+                          "git_details": {
+                              "branch_name": "main",
+                              "file_path": ".harness/<+pipeline.variables.app_name>.yaml",
+                              "commit_message": "Created an entity file",
+                              "connector_ref": "ShibamDhar",
+                              "store_type": "REMOTE",
+                              "repo_name": "<+pipeline.variables.repo_name>",
+                              "is_harness_code_repo": False
+                          }
                       })
+
+                      # Define request headers
                       headers = {
-                        'Content-Type': 'application/json',
-                        'Harness-Account': '<+pipeline.variables.harness_accID>',
-                        'x-api-key': '<+pipeline.variables.api_key>'
+                          "Content-Type": "application/json",
+                          "Harness-Account": "<+pipeline.variables.harness_accID>",
+                          "x-api-key": "<+pipeline.variables.api_key>"
                       }
 
-                      response = requests.request("POST", url, headers=headers, data=payload)
+                      # Send the request and handle response
+                      try:
+                          response = requests.post(url, headers=headers, data=payload)
 
-                      print(response.text)
+                          if response.status_code >= 200 and response.status_code < 300:
+                              print("Component registered successfully.")
+                          elif response.status_code >= 400 and response.status_code < 500:
+                              print(f"Client error ({response.status_code}): {response.json().get('message', response.text)}")
+                          elif response.status_code >= 500:
+                              print(f" Server error ({response.status_code}): {response.text}")
+                          else:
+                              print(f"Unexpected response ({response.status_code}): {response.text}")
+
+                      except requests.exceptions.RequestException as e:
+                          print(f" Request failed: {e}")
         tags: {}
   variables:
-    - name: service_name
+    - name: project_name
       type: String
       description: ""
       required: true
       value: <+input>
-    - name: java_package_name
-      type: String
-      description: ""
-      required: true
-      value: <+input>
-    - name: description
-      type: String
-      description: ""
-      required: true
-      value: <+input>
-    - name: owner
-      type: String
-      description: ""
-      required: true
-      value: <+input>
-    - name: cookie_repo
-      type: String
-      description: ""
-      required: false
-      value: java-cookiecutter-template
-    - name: organization
+    - name: app_name
       type: String
       description: ""
       required: true
@@ -145,7 +171,27 @@ pipeline:
       description: ""
       required: true
       value: <+input>
+    - name: organization
+      type: String
+      description: ""
+      required: true
+      value: <+input>
     - name: unique_identifier
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: owner
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: org_identifier
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: project_identifier
       type: String
       description: ""
       required: true
@@ -153,12 +199,17 @@ pipeline:
     - name: harness_accID
       type: String
       description: ""
-      required: true
+      required: false
       value: zEaak-FLS425IEO7OLzMUg
+    - name: cookie_cutter_repo
+      type: String
+      description: ""
+      required: false
+      value: cookiecutter-spring-boot
     - name: api_key
       type: Secret
       description: ""
-      required: true
+      required: false
       value: sd-api-key-harness
   identifier: JavaOnboardSD_Clone_Clone
-  name: java-service-onboarding
+  name: java-service-onboarding-pipeline
