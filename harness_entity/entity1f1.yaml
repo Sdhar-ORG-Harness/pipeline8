@@ -125,7 +125,7 @@ pipeline:
                               "branch_name": "main",
                               "file_path": ".harness/<+pipeline.variables.app_name>.yaml",
                               "commit_message": "Created an entity file",
-                              "connector_ref": "ShibamDhar",
+                              "connector_ref": "account.ShibamDhar",
                               "store_type": "REMOTE",
                               "repo_name": "<+pipeline.variables.repo_name>",
                               "is_harness_code_repo": False
