@@ -82,6 +82,7 @@ pipeline:
                     command: |-
                       import requests
                       import json
+                      import os
 
                       # Define Harness API endpoint with org and project identifiers
                       url = (
