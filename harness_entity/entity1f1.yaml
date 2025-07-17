@@ -152,6 +152,8 @@ pipeline:
                           else:
                               print(f"Unexpected response ({response.status_code}): {response.text}")
 
+
+                          print(response.json())
                       except requests.exceptions.RequestException as e:
                           print(f" Request failed: {e}")
         tags: {}
