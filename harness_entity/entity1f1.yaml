@@ -167,7 +167,7 @@ pipeline:
 
                           # Write the key=value pair to the output file
                           with open(output_file_path, "w") as f:
-                          f.write(f"{url_key}={catalog_url}\n")
+                              f.write(f"{url_key}={catalog_url}\n")
                           
                       except requests.exceptions.RequestException as e:
                           print(f" Request failed: {e}")
