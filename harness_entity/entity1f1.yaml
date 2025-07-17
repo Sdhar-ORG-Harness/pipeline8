@@ -159,12 +159,18 @@ pipeline:
                           f"{obj.get('kind')}/{obj.get('identifier')}"
                           )
                           print(catalog_url)
+                          # Get the output file path from the environment
+                          output_file_path = os.environ.get("DRONE_OUTPUT")
+
+                          # Key to write
+                          url_key = "registeredCatalogEntity"
+
+                          # Write the key=value pair to the output file
+                          with open(output_file_path, "w") as f:
+                          f.write(f"{url_key}={catalog_url}\n")
+                          
                       except requests.exceptions.RequestException as e:
                           print(f" Request failed: {e}")
-                    outputVariables:
-                      - name: url
-                        type: String
-                        value: catalog_url
         tags: {}
   variables:
     - name: project_name
