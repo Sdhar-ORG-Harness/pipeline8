@@ -157,6 +157,7 @@ pipeline:
                           f"https://qa.harness.io/ng/account/<+pipeline.variables.harness_accID>/module/idp/catalog/"
                           f"account.{obj.get('orgIdentifier')}.{obj.get('projectIdentifier')}/"
                           f"{obj.get('kind')}/{obj.get('identifier')}"
+                          )
                           print(catalog_url)
                       except requests.exceptions.RequestException as e:
                           print(f" Request failed: {e}")
