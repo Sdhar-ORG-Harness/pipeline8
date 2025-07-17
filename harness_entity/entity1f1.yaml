@@ -153,14 +153,17 @@ pipeline:
                               print(f"Unexpected response ({response.status_code}): {response.text}")
 
                           obj = response.json()
-                          url = "https://qa.harness.io/ng/account/<+pipeline.variables.harness_accID>/module/idp/catalog/account.${obj.orgIdentifier}.${obj.projectIdentifier}/${obj.kind}/${obj.identifier}"
-                          print(url)
+                          catalog_url = (
+                          f"https://qa.harness.io/ng/account/<+pipeline.variables.harness_accID>/module/idp/catalog/"
+                          f"account.{obj.get('orgIdentifier')}.{obj.get('projectIdentifier')}/"
+                          f"{obj.get('kind')}/{obj.get('identifier')}"
+                          print(catalog_url)
                       except requests.exceptions.RequestException as e:
                           print(f" Request failed: {e}")
                     outputVariables:
                       - name: url
                         type: String
-                        value: url
+                        value: catalog_url
         tags: {}
   variables:
     - name: project_name
